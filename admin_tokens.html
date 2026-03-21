@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Links dos Apps</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#0a0e18;color:#e8edf5;padding:16px;min-height:100vh}
+h1{font-size:20px;margin-bottom:4px}
+.sub{color:#8a9bb5;font-size:12px;margin-bottom:16px}
+.app-sel{display:flex;gap:6px;margin-bottom:16px}
+.app-btn{flex:1;padding:14px 8px;text-align:center;background:#111827;border:1px solid #1c3355;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#8a9bb5;transition:.2s}
+.app-btn.on{border-color:#0a6fde;color:#3b9aff;background:#0d1929;box-shadow:0 2px 12px rgba(10,111,222,.25)}
+.app-btn .ico{font-size:22px;display:block;margin-bottom:4px}
+.link-item{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#111827;border:1px solid #1c3355;border-radius:8px;margin-bottom:6px}
+.link-num{width:28px;height:28px;border-radius:50%;background:#0a6fde;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.link-token{font-family:'Courier New',monospace;font-size:12px;color:#3b9aff;flex:1}
+.link-status{font-size:10px;color:#556a85}
+.copy-btn{padding:8px 14px;border-radius:6px;background:#1a2332;border:1px solid #1c3355;color:#10b981;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.15s}
+.copy-btn:active{background:#10b981;color:#fff}
+.copied{background:#10b981 !important;color:#fff !important;border-color:#10b981 !important}
+.all-btns{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.big-btn{padding:12px 20px;border-radius:8px;background:linear-gradient(135deg,#0a6fde,#0858b0);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;flex:1;min-width:140px;text-align:center}
+.big-btn:active{transform:scale(.96)}
+.big-btn.green{background:linear-gradient(135deg,#10b981,#059669)}
+.info{padding:12px;background:rgba(10,111,222,.08);border:1px solid rgba(10,111,222,.2);border-radius:8px;font-size:12px;color:#3b9aff;margin-bottom:16px;line-height:1.7}
+.warn{padding:12px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;font-size:12px;color:#f59e0b;margin-bottom:12px;line-height:1.6;display:none}
+.counter{font-size:12px;color:#8a9bb5;margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<h1>🔐 Gerador de Links — Apps Técnicos</h1>
+<div class="sub">Jamis Costa — Técnico em Automação Industrial</div>
+
+<div class="info">
+  <strong>Como usar:</strong> Selecione o app → Toque em "Copiar próximo link" → Cole no WhatsApp do colega.<br>
+  Cada link funciona <strong>UMA VEZ</strong> em <strong>UM dispositivo</strong>.
+</div>
+
+<div class="app-sel">
+  <div class="app-btn on" onclick="selectApp('e3')">
+    <span class="ico">⚡</span>E3/E300
+  </div>
+  <div class="app-btn" onclick="selectApp('pf')">
+    <span class="ico">🔧</span>PowerFlex
+  </div>
+  <div class="app-btn" onclick="selectApp('tm')">
+    <span class="ico">🌀</span>TMFlex
+  </div>
+</div>
+
+<div class="warn" id="urlWarn"></div>
+
+<div class="all-btns">
+  <button class="big-btn green" onclick="copyForWhatsApp()">📱 Copiar próximo link (WhatsApp)</button>
+  <button class="big-btn" onclick="copyAllLinks()">📋 Copiar todos</button>
+</div>
+
+<div class="counter" id="counter"></div>
+<div id="linkList"></div>
+
+<script>
+const APPS = {
+  e3: {
+    name: "E3/E300 Field Guide",
+    url: "https://jamiscosta81-collab.github.io/admin_tokens.html-Gerador",
+    tokens: [
+      "e3-SADA-NPBF","e3-54UR-NVL2","e3-J5ZP-9U9U","e3-RLJY-V7MD","e3-7E5G-4BR9",
+      "e3-GLS4-JZHC","e3-MV5A-2SMN","e3-BFWU-Y63S","e3-7SPG-FQ4B","e3-24QU-JFK5",
+      "e3-CN7C-KHXW","e3-MW6N-W5RE","e3-YBUL-LSYM","e3-KZE4-XXDN","e3-DHWC-XVQK",
+      "e3-DAZZ-MMBR","e3-VG4C-UB9U","e3-B7VP-XGBM","e3-LPE8-TNBL","e3-3CAW-ZUFB"
+    ]
+  },
+  pf: {
+    name: "PowerFlex Field Guide",
+    url: "[SUBIR NO GITHUB E COLOCAR URL AQUI]",
+    tokens: [
+      "pf-5TJ7-QMB3","pf-7ZB4-RGGJ","pf-EGNZ-N43F","pf-HECM-HSW7","pf-WCVK-7UA7",
+      "pf-DB22-4CMN","pf-LM5P-AJ97","pf-HSP2-2BV7","pf-H88C-Y2ZZ","pf-BHSP-656R",
+      "pf-ER38-YS9D","pf-W569-YPDJ","pf-LYEA-7D5K","pf-GYLP-TLJY","pf-LC89-TPC5",
+      "pf-55DC-N587","pf-98KK-YXDH","pf-TKA8-HAWS","pf-4WGP-MRSR","pf-CQ69-ZWX2"
+    ]
+  },
+  tm: {
+    name: "TMFlex 2000 Field Guide",
+    url: "[SUBIR NO GITHUB E COLOCAR URL AQUI]",
+    tokens: [
+      "tm-W9Y8-HB45","tm-3PWK-UU2W","tm-WTGS-TFN6","tm-AHGA-CDXD","tm-E75J-L62L",
+      "tm-NY6E-5VDV","tm-EYE4-DJSF","tm-G4B3-FPE4","tm-NN2Q-FR98","tm-G24X-QP4X",
+      "tm-C8KB-2XB4","tm-LLUX-H6BV","tm-A9DY-E7ZV","tm-5KNS-9L6G","tm-SWB6-KR2D",
+      "tm-VPUM-BFTH","tm-TFKS-5GRD","tm-25ZW-8U86","tm-YLFV-ASSH","tm-ND98-3W7A"
+    ]
+  }
+};
+
+let currentApp = 'e3';
+let sentLog = JSON.parse(localStorage.getItem('sentLog') || '{}');
+
+function selectApp(app) {
+  currentApp = app;
+  document.querySelectorAll('.app-btn').forEach((b,i) => {
+    b.classList.toggle('on', ['e3','pf','tm'][i] === app);
+  });
+  render();
+}
+
+function getLink(app, token) {
+  return APPS[app].url + '/?t=' + token;
+}
+
+function isSent(token) {
+  return sentLog[token] ? true : false;
+}
+
+function markSent(token) {
+  sentLog[token] = new Date().toLocaleDateString('pt-BR');
+  localStorage.setItem('sentLog', JSON.stringify(sentLog));
+}
+
+function render() {
+  const app = APPS[currentApp];
+  const warn = document.getElementById('urlWarn');
+  
+  if (app.url.includes('[')) {
+    warn.style.display = 'block';
+    warn.innerHTML = '⚠ <strong>' + app.name + '</strong> ainda não tem URL do GitHub. Quando subir, edite a URL neste arquivo.';
+  } else {
+    warn.style.display = 'none';
+  }
+
+  const sent = app.tokens.filter(function(t){ return isSent(t); }).length;
+  document.getElementById('counter').innerHTML = app.name + ' — <strong>' + sent + '</strong> de ' + app.tokens.length + ' links enviados';
+
+  var html = '';
+  for (var i = 0; i < app.tokens.length; i++) {
+    var t = app.tokens[i];
+    var s = isSent(t);
+    var num = (i+1).toString();
+    if (num.length < 2) num = '0' + num;
+    html += '<div class="link-item" style="' + (s?'opacity:.5':'') + '">';
+    html += '<div class="link-num" style="' + (s?'background:#556a85':'') + '">' + num + '</div>';
+    html += '<div><div class="link-token">' + t + '</div>';
+    html += '<div class="link-status">' + (s ? '✅ Enviado ' + sentLog[t] : '⏳ Disponível') + '</div></div>';
+    html += '<button class="copy-btn" onclick="copyOne(' + i + ',this)">' + (s ? '📋 Recopiar' : '📋 Copiar') + '</button>';
+    html += '</div>';
+  }
+  document.getElementById('linkList').innerHTML = html;
+}
+
+function copyOne(i, btn) {
+  var app = APPS[currentApp];
+  var token = app.tokens[i];
+  var link = getLink(currentApp, token);
+  var text = '📱 *' + app.name + '*\n\nAcesse o app pelo link abaixo (uso único):\n🔗 ' + link + '\n\n1. Abra o link\n2. Toque em "Ativar App"\n3. Adicione à tela inicial do celular\n\n⚠ Este link funciona UMA vez. Não compartilhe.';
+  
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = '✅ Copiado!';
+    btn.classList.add('copied');
+    markSent(token);
+    setTimeout(function(){ render(); }, 1500);
+  });
+}
+
+function copyForWhatsApp() {
+  var app = APPS[currentApp];
+  var next = null;
+  var idx = -1;
+  for (var i = 0; i < app.tokens.length; i++) {
+    if (!isSent(app.tokens[i])) { next = app.tokens[i]; idx = i; break; }
+  }
+  if (!next) {
+    alert('Todos os 20 links deste app já foram enviados!');
+    return;
+  }
+  var link = getLink(currentApp, next);
+  var text = '📱 *' + app.name + '*\n\nAcesse o app pelo link abaixo (uso único):\n🔗 ' + link + '\n\n1. Abra o link\n2. Toque em "Ativar App"\n3. Adicione à tela inicial do celular\n\n⚠ Este link funciona UMA vez. Não compartilhe.';
+  
+  navigator.clipboard.writeText(text).then(function() {
+    markSent(next);
+    alert('✅ Link ' + (idx+1) + ' copiado!\nToken: ' + next + '\n\nCole no WhatsApp.');
+    render();
+  });
+}
+
+function copyAllLinks() {
+  var app = APPS[currentApp];
+  var text = '🔐 *Links — ' + app.name + '*\nCada link = UMA vez\n\n';
+  for (var i = 0; i < app.tokens.length; i++) {
+    var s = isSent(app.tokens[i]) ? ' ✅' : '';
+    var num = (i+1).toString();
+    if (num.length < 2) num = '0' + num;
+    text += num + '. ' + getLink(currentApp, app.tokens[i]) + s + '\n';
+  }
+  navigator.clipboard.writeText(text).then(function() {
+    alert('✅ Todos os 20 links copiados!');
+  });
+}
+
+render();
+</script>
+</body>
+</html>
