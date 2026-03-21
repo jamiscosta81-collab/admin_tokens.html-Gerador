@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Gerador de Links</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#0a0e18;color:#e8edf5;padding:20px;min-height:100vh}
+h1{font-size:22px;margin-bottom:6px}
+.sub{color:#8a9bb5;font-size:13px;margin-bottom:20px}
+.card{background:#111827;border:1px solid #1c3355;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:16px;color:#3b9aff;margin-bottom:12px}
+label{font-size:12px;color:#8a9bb5;display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+input,select{width:100%;padding:10px;background:#0a0e18;border:1px solid #1c3355;border-radius:8px;color:#e8edf5;font-size:14px;margin-bottom:12px;outline:none}
+input:focus{border-color:#0a6fde}
+.btn{padding:12px 24px;border-radius:8px;background:linear-gradient(135deg,#0a6fde,#0858b0);color:#fff;font-size:14px;font-weight:700;border:none;cursor:pointer;margin-right:8px;margin-bottom:8px}
+.btn:active{transform:scale(.96)}
+.btn.sec{background:#1a2332;border:1px solid #1c3355;color:#8a9bb5}
+.token-list{margin-top:12px}
+.token-item{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#0a0e18;border:1px solid #1c3355;border-radius:8px;margin-bottom:6px;font-size:13px}
+.token-item .code{font-family:'Courier New',monospace;color:#3b9aff;font-weight:700;flex:1}
+.token-item .name{color:#8a9bb5;font-size:12px;min-width:80px}
+.copy-btn{padding:4px 10px;border-radius:4px;background:#1a2332;border:1px solid #1c3355;color:#10b981;font-size:11px;cursor:pointer;font-weight:600;white-space:nowrap}
+.copy-btn:active{background:#10b981;color:#fff}
+.warn{padding:12px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;color:#f59e0b;font-size:12px;line-height:1.6;margin-bottom:16px}
+.output{padding:12px;background:#0a0e18;border:1px solid #1c3355;border-radius:8px;font-family:'Courier New',monospace;font-size:11px;color:#00c6d4;word-break:break-all;margin-top:8px;line-height:1.8}
+.green{color:#10b981}.red{color:#ef4444}.yellow{color:#f59e0b}
+.counter{font-size:11px;color:#8a9bb5;margin-top:4px}
+</style>
+</head>
+<body>
+
+<h1>🔐 Admin — Gerador de Links E3/E300 Field Guide</h1>
+<div class="sub">Gere links únicos para cada colega. Cada link funciona UMA vez em UM dispositivo.</div>
+
+<div class="warn">
+  <strong>⚠ Como funciona:</strong><br>
+  1. Defina a URL base onde o app está hospedado (ex: GitHub Pages)<br>
+  2. Gere tokens para cada colega (nome + token único)<br>
+  3. Envie o link por WhatsApp — o colega abre UMA VEZ, instala, e o link expira<br>
+  4. Copie a lista de tokens e cole dentro do arquivo <code>token_system.html</code> na função <code>getValidTokens()</code>
+</div>
+
+<div class="card">
+  <h2>⚙️ Configuração</h2>
+  <label>URL Base (onde os arquivos estão hospedados)</label>
+  <input id="baseUrl" placeholder="https://jamiscosta81-collab.github.io/admin_tokens.html-Gerador/" value="https://jamiscosta81-collab.github.io/admin_tokens.html-Gerador/">
+</div>
+
+<div class="card">
+  <h2>👤 Gerar Novo Token</h2>
+  <label>Nome do colega</label>
+  <input id="colegaName" placeholder="Ex: João Silva">
+  <button class="btn" onclick="addToken()">+ Gerar Token</button>
+  <button class="btn sec" onclick="addBatch()">+ Gerar 5 de uma vez</button>
+</div>
+
+<div class="card">
+  <h2>📋 Tokens Gerados</h2>
+  <div class="counter" id="counter">0 tokens gerados</div>
+  <div class="token-list" id="tokenList"></div>
+</div>
+
+<div class="card">
+  <h2>📤 Exportar</h2>
+  <button class="btn" onclick="exportLinks()">📋 Copiar todos os links (WhatsApp)</button>
+  <button class="btn sec" onclick="exportCode()">💻 Copiar código para token_system.html</button>
+  <div class="output" id="exportOutput" style="display:none"></div>
+</div>
+
+<script>
+let tokens = [];
+
+function genToken() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let t = 'e3-';
+  for (let i = 0; i < 4; i++) t += chars[Math.floor(Math.random() * chars.length)];
+  t += '-';
+  for (let i = 0; i < 4; i++) t += chars[Math.floor(Math.random() * chars.length)];
+  return t;
+}
+
+function addToken() {
+  const name = document.getElementById('colegaName').value.trim() || `Colega ${tokens.length + 1}`;
+  const token = genToken();
+  tokens.push({ name, token, created: new Date().toLocaleDateString('pt-BR') });
+  document.getElementById('colegaName').value = '';
+  renderTokens();
+}
+
+function addBatch() {
+  for (let i = 0; i < 5; i++) {
+    tokens.push({ name: `Técnico ${tokens.length + 1}`, token: genToken(), created: new Date().toLocaleDateString('pt-BR') });
+  }
+  renderTokens();
+}
+
+function renderTokens() {
+  const base = document.getElementById('baseUrl').value.replace(/\/$/, '');
+  const list = document.getElementById('tokenList');
+  document.getElementById('counter').textContent = `${tokens.length} tokens gerados`;
+  
+  list.innerHTML = tokens.map((t, i) => `
+    <div class="token-item">
+      <span class="name">${t.name}</span>
+      <span class="code">${t.token}</span>
+      <span class="copy-btn" onclick="copyLink(${i})">📋 Link</span>
+      <span class="copy-btn" style="color:#ef4444;border-color:rgba(239,68,68,.3)" onclick="removeToken(${i})">✕</span>
+    </div>
+  `).join('');
+}
+
+function copyLink(i) {
+  const base = document.getElementById('baseUrl').value.replace(/\/$/, '');
+  const link = `${base}/index.html?t=${tokens[i].token}`;
+  navigator.clipboard.writeText(link);
+  event.target.textContent = '✅ Copiado!';
+  setTimeout(() => event.target.textContent = '📋 Link', 1500);
+}
+
+function removeToken(i) {
+  tokens.splice(i, 1);
+  renderTokens();
+}
+
+function exportLinks() {
+  const base = document.getElementById('baseUrl').value.replace(/\/$/, '');
+  const out = document.getElementById('exportOutput');
+  
+  let text = '🔧 *E3/E300 Field Guide — Links de Acesso*\n\n';
+  text += '📱 Instale o app no celular:\n';
+  text += '1. Abra o link abaixo (funciona UMA vez)\n';
+  text += '2. Toque em "Ativar App"\n';
+  text += '3. Adicione à tela inicial\n\n';
+  
+  tokens.forEach(t => {
+    text += `👤 *${t.name}*\n`;
+    text += `🔗 ${base}/index.html?t=${t.token}\n\n`;
+  });
+  
+  text += '⚠ Cada link funciona apenas UMA VEZ. Não compartilhe.';
+  
+  navigator.clipboard.writeText(text);
+  out.style.display = 'block';
+  out.textContent = '✅ Copiado para a área de transferência! Cole no WhatsApp.';
+  setTimeout(() => out.style.display = 'none', 3000);
+}
+
+function exportCode() {
+  const out = document.getElementById('exportOutput');
+  let code = '// Cole este código na função getValidTokens() do arquivo index.html\nreturn [\n';
+  tokens.forEach(t => {
+    code += `    '${t.token}',  // ${t.name} — ${t.created}\n`;
+  });
+  code += '];';
+  
+  navigator.clipboard.writeText(code);
+  out.style.display = 'block';
+  out.innerHTML = '✅ Código copiado! Cole na função getValidTokens() do index.html\n\n' + code;
+}
+</script>
+</body>
+</html>
